@@ -1,0 +1,96 @@
+"""
+DMBI Experiment 5
+Bank Customer Churn System
+Classification using Decision Tree and Gaussian Naive Bayes
+
+Dataset: Churn_Modelling.csv
+Target: Exited (0 = Stayed, 1 = Exited)
+Train/Test split: 80% / 20%
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report,
+    confusion_matrix
+)
+
+# ------------------------------------------------------------
+# STEP 1: IMPORT LIBRARIES AND LOAD DATASET
+# ------------------------------------------------------------
+
+# Google Colab: upload the CSV when prompted.
+try:
+    from google.colab import files
+    uploaded = files.upload()
+    filename = next(iter(uploaded))
+except ImportError:
+    # Local execution: keep Churn_Modelling.csv in this folder.
+    filename = "Churn_Modelling.csv"
+
+df = pd.read_csv(filename)
+
+print("Dataset Shape:", df.shape)
+print("\nFirst Five Records:")
+print(df.head())
+
+# ------------------------------------------------------------
+# STEP 2: PREPROCESS DATA AND SPLIT THE DATASET
+# ------------------------------------------------------------
+
+# Remove identifier columns because they are not useful predictors.
+df = df.drop(
+    columns=["RowNumber", "CustomerId", "Surname"],
+    errors="ignore"
+)
+
+# Separate input features and target variable.
+X = df.drop(columns=["Exited"])
+y = df["Exited"]
+
+# Convert categorical columns into numeric dummy variables.
+X = pd.get_dummies(
+    X,
+    columns=["Geography", "Gender"],
+    drop_first=True,
+    dtype=int
+)
+
+# Split data: 80% training and 20% testing.
+# Stratification preserves the target class proportions.
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42,
+    stratify=y
+)
+
+print("\nFeature Matrix Shape:", X.shape)
+print("Training Records:", len(X_train))
+print("Testing Records:", len(X_test))
+print("Target Distribution:")
+print(y.value_counts())
+
+# ------------------------------------------------------------
+# STEP 3: IMPLEMENT DECISION TREE CLASSIFIER
+# ------------------------------------------------------------
+
+dt_model = DecisionTreeClassifier(random_state=42)
+dt_model.fit(X_train, y_train)
+
+y_pred_dt = dt_model.predict(X_test)
+
+print("\nDecision Tree trained successfully!")
+
+# ------------------------------------------------------------
+# STEP 4: EVALUATE DECISION TREE CLASSIFIER
